@@ -1,4 +1,4 @@
-#imgmerge
+# imgmerge
 A super simple script to merge 2 or more images side by side.
 
 ````
