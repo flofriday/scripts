@@ -1,6 +1,6 @@
 # TODO-Automator
 
-Import tasks into todoist
+Import tasks into [todoist](https://todoist.com/)
 
 ## Setup
 
