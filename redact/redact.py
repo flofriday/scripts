@@ -1,26 +1,32 @@
 import os
 import sys
 import re
+import argparse
 
 replace_block = "████"
 
 
 def main():
     # Read the input
-    if len(sys.argv) <= 2:
-        usage()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("path", help="file or directory to modify")
+    parser.add_argument("word", nargs="+", help="words to replace")
+    args = parser.parse_args()
+
+    target = args.path
+    secret_words = args.word
+
+    if not os.path.exists(target):
+        print(f"Unable to find the file or directory: {target}")
         sys.exit(1)
 
-    target_dir = sys.argv[1]
-    secret_words = sys.argv[2:]
-
     # If the input is just a file, only work on it
-    if os.path.isfile(target_dir):
-        redact_file(target_dir, secret_words)
+    if os.path.isfile(target):
+        redact_file(target, secret_words)
         sys.exit(0)
 
     # If the input is a directory work recursivly on all files in the folder
-    for root, dirs, files in os.walk(target_dir):
+    for root, dirs, files in os.walk(target):
         if ".git" in dirs:
             dirs.remove(".git")
 
@@ -35,12 +41,14 @@ def redact_file(file_name, words):
         file.close()
     except OSError as e:
         print(
-            f'Unable to read file "{file_name}": {e.strerror}. (continuing with next file)'
+            f'Unable to read file "{file_name}": {e.strerror}. '
+            "(continuing with next file)"
         )
         return
     except UnicodeDecodeError as e:
         print(
-            f'Unable to read file "{file_name}": {e.reason}. (continuing with next file)'
+            f'Unable to read file "{file_name}": {e.reason}. '
+            "(continuing with next file)"
         )
         return
 
@@ -61,13 +69,9 @@ def redact_file(file_name, words):
         file.close()
     except OSError as e:
         print(
-            f'Unable to read file "{file_name}": {e.strerror}. (continuing with next file)'
+            f'Unable to write file "{file_name}": {e.strerror}. (continuing with next file)'
         )
         return
-
-
-def usage():
-    print(f"""Usage: {sys.argv[0]} PATH [WORD...]""")
 
 
 if __name__ == "__main__":
