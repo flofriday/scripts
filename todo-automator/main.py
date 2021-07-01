@@ -28,19 +28,23 @@ def parse_stdin() -> List[Tuple[str, datetime]]:
         # Split the line at the :
         parts = list(map(lambda x: x.strip(), line.split(":")))
         if len(parts) != 2:
-            raise RuntimeError(f'Parsing Error: line "{line}" has no doublepoint!')
+            raise RuntimeError(
+                f'Parsing Error: line "{line}" has no doublepoint!'
+            )
 
         # Parse the date
         try:
             date = datetime.strptime(parts[1], "%d.%m")
             date = date.replace(datetime.now().year)
             if date < datetime.now():
-                date.year = date.replace(datetime.now().year + 1)
+                date = datetime(date.year + 1, date.month, date.day)
         except Exception:
             try:
                 date = datetime.strptime(parts[1], "%d.%m.%Y")
             except Exception:
-                raise RuntimeError(f'Parsing Error: "{parts[1]}" is not a valid date!')
+                raise RuntimeError(
+                    f'Parsing Error: "{parts[1]}" is not a valid date!'
+                )
 
         # Add to the output
         output.append((parts[0], date))

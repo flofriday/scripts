@@ -2,6 +2,7 @@ import os
 import sys
 import re
 import argparse
+from typing import List
 
 replace_block = "████"
 
@@ -34,7 +35,7 @@ def main():
             redact_file(os.path.join(root, file), secret_words)
 
 
-def redact_file(file_name, words):
+def redact_file(file_name: str, words: List[str]):
     try:
         file = open(file_name, "r")
         data = file.read()
@@ -58,9 +59,7 @@ def redact_file(file_name, words):
         data = replace.sub(replace_block, data)
 
     # Step two merge nearby blocks
-    replace = re.compile(
-        f"{replace_block}(\\s*{replace_block})+", re.IGNORECASE
-    )
+    replace = re.compile(f"{replace_block}(\\s*{replace_block})+", re.IGNORECASE)
     data = replace.sub(replace_block, data)
 
     try:
