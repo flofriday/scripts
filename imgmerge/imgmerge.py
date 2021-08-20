@@ -32,14 +32,17 @@ def main():
     # Open the input files
     filenames = args.file
     images = list(map(lambda f: Image.open(f), filenames))
+    print(images)
+    heights = list(map(lambda i: i.height, images))
+    widths = list(map(lambda i: i.width, images))
 
     # Merge the images
     if args.vertical:
-        width = reduce(lambda a, b: max(a.width, b.width), images)
-        height = reduce(lambda a, b: a.height + b.height, images)
+        width = max(widths)
+        height = sum(heights)
     else:
-        width = reduce(lambda a, b: a.width + b.width, images)
-        height = reduce(lambda a, b: max(a.height, b.height), images)
+        width = sum(widths)
+        height = max(heights)
 
     result = Image.new("RGBA", (width, height), color="#000000FF")
 
