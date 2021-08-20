@@ -1,4 +1,4 @@
-# mklink
+# mkurl
 
 A simple commandline tool to create .url files.
 
