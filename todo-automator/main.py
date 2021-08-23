@@ -1,21 +1,142 @@
 from datetime import datetime
 from todoist import TodoistAPI
-from typing import List, Tuple
+from notion_client import Client as NotionClient
+from typing import List
 import sys
+import argparse
 
-PROJECT_NAME = "Universität"
+PROJECT_NAME = "University"
+BACKENDS = ["todoist", "notion"]
+DEFAULT_BACKEND = "notion"
 
 
-def add_task(api: TodoistAPI, project_id: int, text: str, duedate: datetime):
-    task = api.items.add(
-        text,
-        project_id=project_id,
-        due={"date": duedate.strftime("%Y-%m-%d")},
+class Task:
+    def __init__(self, text: str, duedate: datetime):
+        self.text = text
+        self.duedate = duedate
+
+    def __str__(self):
+        return f"{self.text}: {self.duedate.strftime('%Y-%m-%d')}"
+
+
+def add_tasks_todoist(project_name: str, tasks: List[Task]):
+    # Authenticate with the todoist API
+    api_token = open("todoist_token.txt").read()
+    api = TodoistAPI(api_token)
+    api.sync()
+
+    # Find the uni project or create it
+    projects = api.state["projects"]
+    projects = list(filter(lambda p: p["name"] == project_name, projects))
+    if len(projects) != 0:
+        project_id = projects[0]["id"]
+    else:
+        procject = api.projects.add(project_name)
+        api.commit()
+        project_id = procject["id"]
+
+    # Add the tasks
+    for task in tasks:
+        task = api.items.add(
+            task.text,
+            project_id=project_id,
+            due={"date": task.duedate.strftime("%Y-%m-%d")},
+        )
+        print(task)
+    api.commit()
+
+
+def add_tasks_notion(project_name: str, tasks: List[Task]):
+    # Authenticate with the notion API
+    notion = NotionClient(auth=open("notion_token.txt").read())
+
+    # Find the project or create it
+    databases = notion.databases.list()["results"]
+    databases = list(
+        filter(
+            lambda d: d["title"][0]["text"]["content"] == project_name,
+            databases,
+        )
     )
-    print(task)
+
+    if databases == []:
+        print(
+            f"ERROR: No Notion Database with the name '{project_name}' is "
+            "accessable by this script.\n"
+            "To fix this issue do the folowing:\n"
+            f"\t1) Create a new database and name it '{project_name}'.\n"
+            f"\t2) Share the database with the integration this script "
+            "uses.\n\n"
+            "More infos at: "
+            "https://developers.notion.com/docs#step-2-share-a-database-with-your-integration"
+        )
+        exit(1)
+
+    database = databases[0]
+
+    # Check if the database has all the required properties (just checking the
+    # names and not the types)
+    if sorted(database["properties"].keys()) != ["Done", "Duedate", "Name"]:
+        # Delete all the properties
+        properties = dict()
+        for key in database["properties"].keys():
+            if key in ["Done", "Duedate", "Name"]:
+                continue
+            properties[key] = None
+        database = notion.databases.update(
+            database["id"], properties=properties
+        )
+
+        # Add the correct properties
+        properties = {
+            "Done": {
+                "checkbox": {},
+            },
+            "Duedate": {
+                "date": {},
+            },
+            "Name": {
+                "title": {},
+            },
+        }
+        database = notion.databases.update(
+            database["id"], properties=properties
+        )
+
+        print(
+            "Hey I just added some missing properties to your database.\n"
+            "However, there are some things I cannot do, "
+            "so please do the following:\n"
+            "\t1) Add a filter to only show not completed tasks\n"
+            "\t2) Sort the tasks by duedate\n"
+            "\tThat's all 🎉\n"
+        )
+
+    # Add the tasks
+    for task in tasks:
+        page = {
+            "Done": {
+                "checkbox": False,
+            },
+            "Duedate": {
+                "date": {
+                    "start": task.duedate.strftime("%Y-%m-%d"),
+                    "end": None,
+                },
+            },
+            "Name": {
+                "title": [
+                    {"text": {"content": task.text}},
+                ],
+            },
+        }
+        notion.pages.create(
+            parent={"database_id": database["id"]}, properties=page
+        )
+        print(task)
 
 
-def parse_stdin() -> List[Tuple[str, datetime]]:
+def parse_stdin() -> List[Task]:
 
     # Read all from Stdin
     lines = sys.stdin.readlines()
@@ -47,32 +168,41 @@ def parse_stdin() -> List[Tuple[str, datetime]]:
                 )
 
         # Add to the output
-        output.append((parts[0], date))
+        output.append(Task(parts[0], date))
 
     return output
 
 
 def main():
-    # Authenticate
-    api_token = open("token.txt").read()
-    api = TodoistAPI(api_token)
-    api.sync()
+    # Parse the commandline arguments
+    # TODO: Add argument for input file (stdin by default)
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--backend",
+        type=str,
+        choices=BACKENDS,
+        default=DEFAULT_BACKEND,
+        help=f"The backend to be used (default: {DEFAULT_BACKEND})",
+    )
+    parser.add_argument(
+        "--project",
+        type=str,
+        default=PROJECT_NAME,
+        help="Project name to which the tasks will be added "
+        f"(default: {PROJECT_NAME})",
+    )
+    args = parser.parse_args()
 
-    # Find the uni project
-    for project in api.state["projects"]:
-        if project["name"] != PROJECT_NAME:
-            continue
-        uni_project_id = project["id"]
-
-    # Parse the input
+    # Read the tasks from stdin
     tasks = parse_stdin()
 
-    # Add the tasks to todoist
-    for task in tasks:
-        text, date = task
-        add_task(api, uni_project_id, text, date)
-
-    api.commit()
+    # Connect to the backend and upload the tasks
+    if args.backend == "todoist":
+        add_tasks_todoist(args.project, tasks)
+    elif args.backend == "notion":
+        add_tasks_notion(args.project, tasks)
+    else:
+        raise RuntimeError(f"Unknown backend '{args.backend}'")
 
 
 if __name__ == "__main__":
