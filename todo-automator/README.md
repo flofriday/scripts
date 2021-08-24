@@ -30,7 +30,10 @@ However there are some things you need to do either way:
 ## Usage
 
 ```
-usage: main.py [-h] [--backend {todoist,notion}] [--project PROJECT]
+usage: main.py [-h] [--backend {todoist,notion}] [--project PROJECT] [files ...]
+
+positional arguments:
+  files                 Files with tasks to add (default: stdin)
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -44,6 +47,7 @@ optional arguments:
 ```bash
 echo "A new task: 04.03.2021" | python3 main.py
 python3 main.py < WE.txt
+python3 main.py --backend=todoist --project=Work WE.txt DIR.txt
 ```
 
-The script reads from stdin and each line of the input must be in the format `<taskname>: <deadline-date>`. The date can be either in the european format `DD.MM` or `DD.MM.YYYY`.
+The script reads the file each line of the input must be in the format `<taskname>: <deadline-date>`. The date can be either in the european format `DD.MM` or `DD.MM.YYYY`. All `.txt` files in this directory are examples.

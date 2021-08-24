@@ -5,7 +5,7 @@ from typing import List
 import sys
 import argparse
 
-PROJECT_NAME = "University"
+DEFAULT_PROJECT = "University"
 BACKENDS = ["todoist", "notion"]
 DEFAULT_BACKEND = "notion"
 
@@ -37,7 +37,7 @@ def add_tasks_todoist(project_name: str, tasks: List[Task]):
 
     # Add the tasks
     for task in tasks:
-        task = api.items.add(
+        api.items.add(
             task.text,
             project_id=project_id,
             due={"date": task.duedate.strftime("%Y-%m-%d")},
@@ -50,7 +50,7 @@ def add_tasks_notion(project_name: str, tasks: List[Task]):
     # Authenticate with the notion API
     notion = NotionClient(auth=open("notion_token.txt").read())
 
-    # Find the project or create it
+    # Find the database
     databases = notion.databases.list()["results"]
     databases = list(
         filter(
@@ -59,6 +59,9 @@ def add_tasks_notion(project_name: str, tasks: List[Task]):
         )
     )
 
+    # The database is no where to be found
+    # tell the user to create it since notion bots are not allowed to create
+    # top-level (workspace is parent) databases
     if databases == []:
         print(
             f"ERROR: No Notion Database with the name '{project_name}' is "
@@ -68,7 +71,18 @@ def add_tasks_notion(project_name: str, tasks: List[Task]):
             f"\t2) Share the database with the integration this script "
             "uses.\n\n"
             "More infos at: "
-            "https://developers.notion.com/docs#step-2-share-a-database-with-your-integration"
+            "https://developers.notion.com/docs"
+            "#step-2-share-a-database-with-your-integration"
+        )
+        exit(1)
+
+    # Multiple databases match the name so tell the user to delete one
+    if len(databases) != 1:
+        print(
+            "ERROR: There are multiple Notion Databases "
+            f"called '{project_name}'.\n"
+            "This script can impossible know which one is the correct one so "
+            "please delete one."
         )
         exit(1)
 
@@ -103,8 +117,9 @@ def add_tasks_notion(project_name: str, tasks: List[Task]):
             database["id"], properties=properties
         )
 
+        # TODO: If the API allows it in the future, this should be automated
         print(
-            "Hey I just added some missing properties to your database.\n"
+            "Hey, I just added some missing properties to your database.\n"
             "However, there are some things I cannot do, "
             "so please do the following:\n"
             "\t1) Add a filter to only show not completed tasks\n"
@@ -136,10 +151,19 @@ def add_tasks_notion(project_name: str, tasks: List[Task]):
         print(task)
 
 
-def parse_stdin() -> List[Task]:
+def parse_input(files: List[str]) -> List[Task]:
 
     # Read all from Stdin
-    lines = sys.stdin.readlines()
+    if files == []:
+        lines = sys.stdin.readlines()
+
+    # Read all files
+    else:
+        lines = []
+        for file in files:
+            with open(file) as f:
+                lines.extend(f.readlines())
+
     output = []
     for line in lines:
         # Ignore empty lines
@@ -175,8 +199,13 @@ def parse_stdin() -> List[Task]:
 
 def main():
     # Parse the commandline arguments
-    # TODO: Add argument for input file (stdin by default)
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "files",
+        nargs="*",
+        default=[],
+        help="Files with tasks to add (default: stdin)",
+    )
     parser.add_argument(
         "--backend",
         type=str,
@@ -187,14 +216,14 @@ def main():
     parser.add_argument(
         "--project",
         type=str,
-        default=PROJECT_NAME,
+        default=DEFAULT_PROJECT,
         help="Project name to which the tasks will be added "
-        f"(default: {PROJECT_NAME})",
+        f"(default: {DEFAULT_PROJECT})",
     )
     args = parser.parse_args()
 
     # Read the tasks from stdin
-    tasks = parse_stdin()
+    tasks = parse_input(args.files)
 
     # Connect to the backend and upload the tasks
     if args.backend == "todoist":
