@@ -1,6 +1,7 @@
 # TODO-Automator
 
-Import tasks into [todoist](https://todoist.com/)
+Import tasks into [Notion](https://www.notion.so/)
+or [Todoist](https://todoist.com/).
 
 ## Setup
 
