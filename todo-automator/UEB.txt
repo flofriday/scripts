@@ -1,0 +1,8 @@
+Abgabe Assembler A: 15.3
+Abgabe Assembler B: 22.3
+Abgabe Scanner: 29.3
+Abgabe Parser: 5.4
+Abgabe Attributierte Grammatik: 4.4
+Abgabe Codeerzeugung A: 17.5
+Abgabe Codeerzeugung B: 31.5
+Abgabe Gesamtbeispiel: 14.6

@@ -34,18 +34,22 @@ def main():
         url = "https://" + url
 
     elif url_obj.scheme == "http":
-        print("WARNING: HTTP is insecure, use HTTPS instead if possible!")
+        print(
+            "WARNING: HTTP is insecure, use HTTPS instead if possible!",
+            file=sys.stderr,
+        )
 
     # Verify filename
     if filename is not None and not filename.endswith(".url"):
         print(
             "WARNING: The outputfile should end with `.url` to indicate to "
-            "the OS that this is a url file."
+            "the OS that this is a url file.",
+            file=sys.stderr,
         )
 
     # Write the URL to the output file
     write_url(url, filename)
 
 
-# if __name__ == "__main__":
-#    main()
+if __name__ == "__main__":
+    main()
