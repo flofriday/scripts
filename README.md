@@ -20,6 +20,10 @@ Import tasks into todoist.
 
 Create .url files.
 
+### logouter
+
+Logs me out of social media websites by deleting their cookies.
+
 ## Install scripts globally
 
 **NOTE:** At the moment this only installs `mkurl` globally.
