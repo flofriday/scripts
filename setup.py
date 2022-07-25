@@ -5,6 +5,9 @@ setup(
     version="1.0.0",
     packages=find_packages(),
     entry_points={
-        "console_scripts": ["mkurl=mkurl.mkurl:main"],
+        "console_scripts": [
+            "mkurl=mkurl.mkurl:main",
+            "sourcepaper=sourcepaper.main:main",
+        ],
     },
 )

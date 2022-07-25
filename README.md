@@ -24,11 +24,15 @@ Create .url files.
 
 Logs me out of social media websites by deleting their cookies.
 
+### sourcepaper
+
+A simple script that packs sourcecode files into a pdf so it can be printed.
+
 ## Install scripts globally
 
-**NOTE:** At the moment this only installs `mkurl` globally.
+**NOTE:** At the moment this only installs `mkurl` and `sourcepaper` globally.
 
 ```bash
 python3 -m pip install setuptools
-python3 setup.py install
+python3 -m pip install -e .
 ```
