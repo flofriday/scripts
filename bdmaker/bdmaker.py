@@ -59,7 +59,9 @@ def parse_input(input):
     # Date parsing error
     else:
         print(
-            "ERROR: I cannot parse the date.\nI can only read dates in the european or ISO format.",
+            "ERROR: I cannot parse the date.\n"
+            "I can only read dates in the european or ISO format.\n"
+            "Examples: 2000-11-23, 23.11.2000, 23.11 (when year is unknonw)",
             file=sys.stderr,
         )
         exit(1)
