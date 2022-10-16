@@ -8,25 +8,25 @@ A simple collection of my private scripts.
 
 Merge multiple images into one.
 
-### redact
+### logouter
 
-Redact names from textfiles.
-
-### todo-automator
-
-Import tasks into todoist.
+Logs me out of social media websites by deleting their cookies.
 
 ### mkurl
 
 Create .url files.
 
-### logouter
+### redact
 
-Logs me out of social media websites by deleting their cookies.
+Redact names from textfiles.
 
 ### sourcepaper
 
 A simple script that packs sourcecode files into a pdf so it can be printed.
+
+### todo-automator
+
+Import tasks into todoist.
 
 ## Install scripts globally
 
