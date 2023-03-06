@@ -5,7 +5,7 @@ Import tasks into [Todoist](https://todoist.com/).
 ## Setup
 
 1. [Install Python](https://www.python.org/downloads/)
-2. Install the requirements `pip install todoist-python notion-client`
+2. Install the requirements `pip install todoist-api-python`
 
 ### Todoist Setup
 
